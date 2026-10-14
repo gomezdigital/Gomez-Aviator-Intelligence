@@ -120,8 +120,14 @@
         <article class="panel" id="model-lab">
           <div class="panel-heading"><div><div class="section-kicker">MODEL RESEARCH</div><h2>Evidence before predictions</h2><p>Model status and validation checklist.</p></div><span class="panel-tag">PHASE 01</span></div>
           <div class="model-status"><span class="model-icon">⌘</span><div><strong>Statistical baseline</strong><small id="baseline-status">Waiting for data</small></div><span class="status-pill" id="baseline-pill">NOT RUN</span></div>
-          <div class="model-status"><span class="model-icon">◈</span><div><strong>Out-of-sample evaluation</strong><small>Time-ordered holdout testing</small></div><span class="status-pill muted-pill">PLANNED</span></div>
+          <div class="model-status"><span class="model-icon">◈</span><div><strong>Out-of-sample evaluation</strong><small id="holdout-status">Ready for time-ordered holdout testing</small></div><span class="status-pill muted-pill" id="holdout-pill">NOT RUN</span></div>
           <div class="model-status"><span class="model-icon">✓</span><div><strong>Leakage & quality checks</strong><small>Validate before any model claims</small></div><span class="status-pill muted-pill">PLANNED</span></div>
+          <div class="holdout-box">
+            <div class="section-kicker">CHRONOLOGICAL BACKTEST</div>
+            <p class="small-note">Uses the target and low-round streak selected in Strategy Lab. The first 70% trains the simple rule; the final 30% evaluates it without fitting to those outcomes.</p>
+            <button class="button button-primary full-button" id="run-holdout" type="button">Run 70/30 holdout test</button>
+            <div class="analysis-result" id="holdout-result" aria-live="polite"><div class="result-placeholder">Load at least 50 observations, then run the holdout test. It compares Brier scores against a training-only base-rate forecast.</div></div>
+          </div>
           <div class="evidence-callout"><strong>Our standard</strong><p>A model must outperform a simple baseline on unseen data before we describe its signal as useful. If it cannot, the report will say so.</p></div>
         </article>
       </section>
