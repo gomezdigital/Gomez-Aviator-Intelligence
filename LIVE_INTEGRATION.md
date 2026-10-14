@@ -64,3 +64,35 @@ The server-side collector should:
 - No bet placement, auto-cashout, or automated betting is implemented.
 
 Historical results and statistical analysis cannot reliably reveal the next independent crash outcome. Live data is for recording and research, not guaranteed prediction.
+
+
+## Multi-source collection plan (Betway first)
+
+The intended source priority is:
+
+1. **Betway** — first candidate to investigate; access to completed rounds is not yet verified.
+2. **SportyBet** — fallback candidate, subject to its own official documentation and permission.
+3. **Other legitimate Aviator operators/providers** — add only when their data access is documented and authorized.
+
+Supporting multiple sources means building source-specific adapters that normalize data into the common record format above. Each record must retain its original source and source round ID; do not merge rounds from different operators as if they were the same round. The dashboard should show a separate health state and last successful sync per source.
+
+### Collection methods, in preferred order
+
+1. Official documented API/feed with permission.
+2. Provider-authorized callback/webhook or export.
+3. User-provided CSV/history export, clearly labelled as imported data.
+4. Manual entry for limited testing, clearly labelled as manual.
+
+Do not build a collector that circumvents authentication, anti-bot protections, access controls, or an operator's terms. A page that happens to display a multiplier does not automatically grant permission to automate extraction. Do not request or store a user's password, session cookie, or browser token.
+
+### Minimum acceptance criteria for each source
+
+- Written/documented permission and allowed use.
+- Stable round identifier, final multiplier, and round-end timestamp where available.
+- Rate limits and pagination/reconnection behavior documented.
+- Duplicate prevention and source-specific provenance.
+- Explicit online/offline/stale status and last-success timestamp.
+- Validation for malformed values, missing IDs, duplicate IDs, timestamp problems, and gaps.
+- No betting automation and no claim that historical outcomes predict the next result.
+
+**Current implementation status:** this is a plan only. No operator is connected, and the dashboard must continue to display **NOT CONNECTED** until a real authorized source has been configured and verified end to end.
