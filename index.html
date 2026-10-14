@@ -73,7 +73,19 @@
           <div class="connector-requirement"><span>04</span><div><strong>04 · Source-by-source health</strong><p>Show each source's connection state, last successful sync, data age, gaps, duplicates, and validation results.</p></div></div>
         </div>
         <div class="connector-callout"><strong>Source priority: Betway first; approved alternatives next.</strong><p>We can design the collector to support multiple sources, but we must verify access for each one. Official Aviator Studio documentation describes authenticated provider access and IP allowlisting; it does not establish a public Betway or SportyBet player-results feed. We will not bypass logins, defeat access controls, or label demo/manual data as live.</p><a href="https://docs.crash.aviator.studio/round-history/" target="_blank" rel="noopener noreferrer">Review official Round History API documentation ↗</a></div>
-        <p class="small-note" id="connector-next-step">Next step: verify the permitted data access route for Betway first, then evaluate SportyBet and other approved sources. Never paste API secrets, passwords, or session cookies into this dashboard or a public GitHub file.</p>
+        <div class="connector-callout connector-connect-form">
+          <strong>Connect a deployed collector</strong>
+          <p>When the backend is deployed, enter its HTTPS base address here. This connects the dashboard to the collector API; it does not create a provider feed by itself.</p>
+          <label for="collector-url">Collector API base URL</label>
+          <div class="connector-connect-controls">
+            <input id="collector-url" type="url" inputmode="url" placeholder="https://your-collector.example.com" autocomplete="url" aria-describedby="collector-connection-status">
+            <button id="connect-collector" type="button" class="primary-button">Connect</button>
+          </div>
+          <p class="small-note" id="collector-connection-status" role="status" aria-live="polite">Not configured. No live source connected.</p>
+          <div id="collector-source-status" class="collector-source-status" aria-live="polite"></div>
+          <button id="import-collector-records" type="button" class="secondary-button" disabled>Load collected rounds into Data Lab</button>
+        </div>
+        <p class="small-note" id="connector-next-step">Next step: verify an authorised Betway data route, deploy the collector, then connect its HTTPS address above. Never paste API secrets, passwords, or session cookies into this dashboard or a public GitHub file.</p>
       </section>
 
       <section class="metrics-grid" aria-label="Dataset summary">
