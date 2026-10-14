@@ -135,6 +135,25 @@
         </article>
       </section>
 
+      <section class="panel flight-predictor-panel" id="flight-predictor" aria-labelledby="flight-predictor-title">
+        <div class="panel-heading">
+          <div><div class="section-kicker">FLIGHT CHECK · RESEARCH TOOL</div><h2 id="flight-predictor-title">Next Flight ✈️</h2><p>Check the data before the next round. This tool cannot know the next crash point.</p></div>
+          <span class="panel-tag orange-tag">ESTIMATE ONLY</span>
+        </div>
+        <div class="flight-predictor-content">
+          <div class="flight-icon" aria-hidden="true">✈️</div>
+          <div class="flight-predictor-copy">
+            <strong>Want to check the next flight?</strong>
+            <p>Press the button to see what your saved history says. Past results do not tell us what the next result will be.</p>
+            <button class="button button-primary" id="predict-next-flight" type="button">Predict Next Flight ✈️</button>
+          </div>
+        </div>
+        <div id="next-flight-result" class="next-flight-result" role="status" aria-live="polite">
+          <strong>No estimate yet</strong><p>Load historical data, then press the button. If there is no data, we will say so.</p>
+        </div>
+        <p class="small-note">Important: this is a history-based research check, not a real prediction or a betting signal. Each new crash result can be different.</p>
+      </section>
+
       <section class="content-grid lower-grid">
         <article class="panel" id="strategy-lab">
           <div class="panel-heading"><div><div class="section-kicker">STRATEGY LAB</div><h2>Historical threshold check</h2><p>Compare observed frequency with the selected threshold.</p></div></div>
