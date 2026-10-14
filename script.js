@@ -921,32 +921,56 @@
     const output = $("next-flight-result");
     if (!output) return;
     const data = visibleRecords();
+    output.replaceChildren();
+
+    const title = document.createElement("strong");
+    const message = document.createElement("p");
     if (!data.length) {
-      output.textContent = "";
-      const strong = document.createElement("strong");
-      strong.textContent = "No data to check yet";
-      const p = document.createElement("p");
-      p.textContent = "Import a real history CSV or connect a collector first. Demo data is only for testing.";
-      output.append(strong, p);
+      title.textContent = "No history available yet";
+      message.textContent = "Import a real history CSV or connect a collector first. Demo data is only for testing.";
+      output.append(title, message);
       return;
     }
+
     const isDemo = /demo|synthetic/i.test(String(dataSource || ""));
-    const total = data.length;
-    const rate = (target) => (data.filter((r) => r.multiplier >= target).length / total) * 100;
-    const lines = [
-      "We cannot reliably predict the next flight. Its crash point is unknown.",
-      "In the " + total.toLocaleString() + " saved round(s):",
-      "• Reached 2×: " + rate(2).toFixed(1) + "%",
-      "• Reached 5×: " + rate(5).toFixed(1) + "%",
-      "• Reached 10×: " + rate(10).toFixed(1) + "%",
-      isDemo ? "WARNING: this is synthetic demo data, not real game history." : "These are past results only, not odds for the next round."
-    ];
-    output.textContent = "";
-    const title = document.createElement("strong");
     title.textContent = "Next flight: unknown ✈️";
-    const p = document.createElement("p");
-    p.textContent = lines.join("\n");
-    output.append(title, p);
+    message.textContent = "Here is what happened in your saved history. These percentages describe past rounds only; they are not the chance for the next round.";
+    output.append(title, message);
+
+    const stats = document.createElement("div");
+    stats.className = "flight-stat-grid";
+    const total = data.length;
+    [
+      { target: 2, label: "Reached 2×", tone: "flight-stat-low" },
+      { target: 5, label: "Reached 5×", tone: "flight-stat-mid" },
+      { target: 10, label: "Reached 10×", tone: "flight-stat-high" }
+    ].forEach((item) => {
+      const count = data.filter((r) => r.multiplier >= item.target).length;
+      const pct = (count / total) * 100;
+      const card = document.createElement("div");
+      card.className = "flight-stat-card " + item.tone;
+      const label = document.createElement("span");
+      label.textContent = item.label;
+      const value = document.createElement("strong");
+      value.textContent = pct.toFixed(1) + "%";
+      const detail = document.createElement("small");
+      detail.textContent = count.toLocaleString() + " of " + total.toLocaleString() + " rounds";
+      const track = document.createElement("span");
+      track.className = "flight-stat-track";
+      const fill = document.createElement("span");
+      fill.style.width = pct + "%";
+      track.appendChild(fill);
+      card.append(label, value, detail, track);
+      stats.appendChild(card);
+    });
+    output.appendChild(stats);
+
+    const caveat = document.createElement("p");
+    caveat.className = "flight-result-caveat";
+    caveat.textContent = isDemo
+      ? "Demo warning: these figures use synthetic example data, not real Aviator results."
+      : "Research only: historical frequency does not reliably predict the next crash point.";
+    output.appendChild(caveat);
   }
 
   function init() {
