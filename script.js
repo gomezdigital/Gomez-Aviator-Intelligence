@@ -11,6 +11,7 @@
   let records = [];
   let dataSource = "No dataset loaded";
   let invalidRows = 0;
+  let lastResearchRun = null;
 
   function safeNumber(value) {
     if (typeof value === "number") return Number.isFinite(value) ? value : null;
@@ -318,6 +319,7 @@
       : "Waiting for data");
     render24HourSummary();
     renderRecords(data);
+    updateDatasetProfile();
     drawChart(data);
     updateProbability();
   }
@@ -439,6 +441,120 @@
   function brierScore(outcomes, predictions) {
     if (!outcomes.length || outcomes.length !== predictions.length) return null;
     return outcomes.reduce((sum, outcome, i) => sum + Math.pow(predictions[i] - outcome, 2), 0) / outcomes.length;
+  }
+
+  function wilsonInterval(successes, total, z = 1.96) {
+    if (!total) return { low: null, high: null };
+    const p = successes / total;
+    const z2 = z * z;
+    const denom = 1 + z2 / total;
+    const center = (p + z2 / (2 * total)) / denom;
+    const margin = z * Math.sqrt((p * (1 - p) / total) + (z2 / (4 * total * total))) / denom;
+    return { low: Math.max(0, center - margin), high: Math.min(1, center + margin) };
+  }
+
+  function estimateHistoricalRate() {
+    const output = $("estimate-result");
+    if (!output) return;
+    const threshold = safeNumber($("threshold-input")?.value);
+    if (threshold === null || threshold <= 1) {
+      output.textContent = "Enter a target multiplier greater than 1× in Strategy Lab.";
+      return;
+    }
+    const quality = dataQualityReport();
+    if (!records.length) {
+      output.textContent = "Load or import historical observations first. No prediction is available without data.";
+      return;
+    }
+    if (quality.hasSeriousIssues) {
+      output.textContent = "Estimate paused because invalid or future timestamps were detected. Correct the dataset first.";
+      return;
+    }
+    const data = visibleRecords();
+    const hits = data.filter((r) => r.multiplier >= threshold).length;
+    const rate = hits / data.length;
+    const ci = wilsonInterval(hits, data.length);
+    lastResearchRun = {
+      kind: "Historical target-rate estimate",
+      createdAt: new Date().toISOString(),
+      threshold,
+      streakN: safeNumber($("streak-input")?.value),
+      n: data.length,
+      hits,
+      rate,
+      ciLow: ci.low,
+      ciHigh: ci.high,
+      dataSource,
+      quality: qualitySummaryText(quality)
+    };
+    output.textContent = "Historical rate for reaching " + threshold.toFixed(2) + "×: " +
+      fmtPercent(rate * 100) + " (" + hits + " of " + data.length + " observations). Approximate 95% Wilson interval: " +
+      fmtPercent(ci.low * 100) + "–" + fmtPercent(ci.high * 100) + ". This describes the supplied past sample only; it is not a reliable forecast of the next round, and assumes the sample is relevant and observations are comparable.";
+    setText("estimate-status", "Historical sample rate calculated");
+    setText("estimate-pill", "RESEARCH ONLY");
+  }
+
+  function datasetProfile() {
+    const data = visibleRecords();
+    const timestamps = data.filter((r) => r.timestamp !== null).map((r) => r.timestamp).sort((a, b) => a - b);
+    const q = dataQualityReport();
+    return {
+      source: dataSource,
+      records: data.length,
+      timestamped: timestamps.length,
+      timestampCoverage: data.length ? timestamps.length / data.length : 0,
+      start: timestamps.length ? new Date(timestamps[0]).toISOString() : "",
+      end: timestamps.length ? new Date(timestamps[timestamps.length - 1]).toISOString() : "",
+      median: data.length ? median(data.map((r) => r.multiplier)) : null,
+      rate2x: data.length ? data.filter((r) => r.multiplier >= 2).length / data.length : null,
+      rate10x: data.length ? data.filter((r) => r.multiplier >= 10).length / data.length : null,
+      quality: qualitySummaryText(q)
+    };
+  }
+
+  function updateDatasetProfile() {
+    const output = $("dataset-profile");
+    if (!output) return;
+    const p = datasetProfile();
+    if (!p.records) {
+      output.textContent = "No dataset loaded. Import timestamped historical observations to create a research profile.";
+      return;
+    }
+    output.textContent = p.records + " records · " + Math.round(p.timestampCoverage * 100) +
+      "% timestamp coverage · median " + fmtMultiplier(p.median) +
+      " · ≥2× " + fmtPercent(p.rate2x * 100) + " · ≥10× " + fmtPercent(p.rate10x * 100) +
+      (p.start ? " · date range " + p.start + " to " + p.end : " · no usable timestamps") +
+      ". Source label: " + p.source + ". The dashboard cannot independently authenticate source data.";
+  }
+
+  function exportResearchReport() {
+    const p = datasetProfile();
+    const threshold = safeNumber($("threshold-input")?.value);
+    const streakN = safeNumber($("streak-input")?.value);
+    const rows = [
+      ["field", "value"],
+      ["report_created_at", new Date().toISOString()],
+      ["dataset_source_label", p.source],
+      ["record_count", p.records],
+      ["timestamped_records", p.timestamped],
+      ["timestamp_coverage_percent", (p.timestampCoverage * 100).toFixed(2)],
+      ["timestamp_range_start", p.start],
+      ["timestamp_range_end", p.end],
+      ["median_multiplier", p.median === null ? "" : p.median],
+      ["observed_rate_2x_percent", p.rate2x === null ? "" : (p.rate2x * 100).toFixed(4)],
+      ["observed_rate_10x_percent", p.rate10x === null ? "" : (p.rate10x * 100).toFixed(4)],
+      ["target_multiplier", threshold === null ? "" : threshold],
+      ["low_round_streak_length", streakN === null ? "" : streakN],
+      ["historical_estimate", $("estimate-result")?.textContent || "Not run"],
+      ["holdout_status", $("holdout-status")?.textContent || ""],
+      ["holdout_report", $("holdout-result")?.textContent || "Not run"],
+      ["walk_forward_status", $("walk-forward-status")?.textContent || ""],
+      ["walk_forward_report", $("walk-forward-result")?.textContent || "Not run"],
+      ["data_quality", p.quality],
+      ["interpretation_warning", "Historical rates do not reliably predict the next round. Results depend on data quality and may not generalize."]
+    ];
+    downloadCsv("gomez-aviator-research-report.csv", rows);
+    setText("report-status", "Research report exported. It includes the current dataset profile, settings and visible validation results.");
   }
 
   function evaluateHoldout() {
@@ -703,6 +819,7 @@
     records = [];
     dataSource = "No dataset loaded";
     invalidRows = 0;
+    lastResearchRun = null;
     try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
     updateMetrics([]);
     const output = $("analysis-result");
@@ -725,6 +842,8 @@
     $("run-analysis")?.addEventListener("click", analyseThreshold);
     $("run-holdout")?.addEventListener("click", evaluateHoldout);
     $("run-walk-forward")?.addEventListener("click", evaluateWalkForward);
+    $("estimate-rate")?.addEventListener("click", estimateHistoricalRate);
+    $("export-research-report")?.addEventListener("click", exportResearchReport);
     $("clear-data")?.addEventListener("click", clearData);
     $("rtp-input")?.addEventListener("input", updateProbability);
     $("target-input")?.addEventListener("input", updateProbability);
