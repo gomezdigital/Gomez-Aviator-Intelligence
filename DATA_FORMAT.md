@@ -66,3 +66,8 @@ The Model Research panel includes a sequential walk-forward test for datasets wi
 ## Data-quality and validation safeguards
 
 The dashboard now reports basic data-quality flags: missing or invalid timestamps, timestamps in the future, timestamp order inversions in supplied rows, repeated timestamp+multiplier pairs, and duplicate round IDs. These are heuristics, not proof that a record is wrong. Identical multipliers alone are not considered duplicates because repeated values can occur naturally. Chronological holdout and walk-forward tests are paused when any supplied timestamp is invalid or materially in the future; correct the source data and re-import it. Records without timestamps remain usable only in their supplied row order, which the user must verify is chronological. The dashboard cannot authenticate a source, prove that the records are complete, or establish that observations are genuine game results.
+
+
+## Research estimates and report exports
+
+The experimental historical-rate panel calculates the observed proportion of supplied records reaching the selected target and an approximate 95% Wilson score interval. This interval summarizes uncertainty in a binomial sample; it is not a calibrated prediction interval for the next round and does not establish that future outcomes follow the same distribution. The research report CSV exports dataset size, timestamp coverage and range, descriptive rates, selected target/streak settings, visible holdout and walk-forward reports, quality flags, and an interpretation warning. Reports should retain the source dataset separately because the export summary cannot authenticate it.
