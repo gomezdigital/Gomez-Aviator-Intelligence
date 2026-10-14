@@ -7,7 +7,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 8080);
 const DATA_FILE = path.resolve(process.env.DATA_FILE || path.join(__dirname, "data", "rounds.jsonl"));
 const INGEST_TOKEN = process.env.INGEST_API_TOKEN || "";
-const READ_TOKEN = process.env.READ_API_TOKEN || "";
 const ALLOWED_SOURCES = new Set(
   (process.env.ALLOWED_SOURCES || "")
     .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean)
@@ -263,8 +262,8 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Gomez Aviator Intelligence Collector listening on port ${PORT}`);
-  if (!INGEST_TOKEN || !READ_TOKEN) {
-    console.warn("WARNING: Set separate INGEST_API_TOKEN and READ_API_TOKEN secrets before deployment.");
+  if (!INGEST_TOKEN) {
+    console.warn("WARNING: Set INGEST_API_TOKEN before enabling any ingestion source.");
   }
   if (ALLOWED_SOURCES.size === 0) {
     console.warn("No sources enabled. Ingestion is intentionally disabled until an authorized source is configured.");
