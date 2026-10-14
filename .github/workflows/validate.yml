@@ -26,3 +26,5 @@ jobs:
         run: node --check collector/server.js
       - name: Validate collector package metadata
         run: node -e "JSON.parse(require('node:fs').readFileSync('collector/package.json', 'utf8'))"
+      - name: Run collector API smoke tests
+        run: node --test collector/server.test.js
