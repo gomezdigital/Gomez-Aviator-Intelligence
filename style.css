@@ -169,3 +169,10 @@ td:first-child { color: #777781; }
 #holdout-result p { color: #b7b7c0; font-size: 10px; line-height: 1.7; margin: 0; }
 #holdout-result p + p { margin-top: 10px; }
 #holdout-pill { max-width: 110px; text-align: center; }
+
+.walk-forward-box { margin-top: 18px; }
+.compact-status { margin: 12px 0; }
+#walk-forward-result p, #walk-forward-result li { color: #b7b7c0; font-size: 10px; line-height: 1.7; }
+#walk-forward-result ul { padding-left: 18px; margin: 8px 0 12px; }
+#walk-forward-result li + li { margin-top: 5px; }
+#walk-forward-pill { max-width: 110px; text-align: center; }
