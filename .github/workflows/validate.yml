@@ -1,0 +1,28 @@
+name: Validate Gomez Aviator Intelligence
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check dashboard JavaScript syntax
+        run: node --check script.js
+      - name: Check collector JavaScript syntax
+        run: node --check collector/server.js
+      - name: Validate collector package metadata
+        run: node -e "JSON.parse(require('node:fs').readFileSync('collector/package.json', 'utf8'))"
