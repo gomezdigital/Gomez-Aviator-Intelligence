@@ -183,3 +183,22 @@ td:first-child { color: #777781; }
 #dataset-profile { overflow-wrap: anywhere; }
 #estimate-pill { white-space: nowrap; }
 #report-status { display: block; margin-top: 12px; }
+
+
+/* Phase 02: honest live-data connector readiness panel */
+.live-connector-panel { margin: 0 0 20px; }
+.connector-offline { color: #ffb4a6; background: #2b1716; border-color: #66342e; }
+.connector-status-row { display: flex; align-items: flex-start; gap: 12px; padding: 15px; border: 1px solid #55312a; background: linear-gradient(120deg, rgba(255,138,50,.09), rgba(255,255,255,.015)); border-radius: 10px; }
+.connector-indicator { width: 10px; height: 10px; flex: 0 0 auto; margin-top: 4px; border-radius: 50%; background: #f07868; box-shadow: 0 0 0 4px rgba(240,120,104,.12); }
+.connector-status-row strong, .connector-requirement strong { color: #f1f1f4; font-size: 12px; }
+.connector-status-row p, .connector-requirement p, .connector-callout p { margin: 6px 0 0; color: #a5a5af; font-size: 10px; line-height: 1.7; }
+.connector-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin-top: 13px; }
+.connector-requirement { display: flex; gap: 11px; padding: 13px; border: 1px solid var(--border); border-radius: 9px; background: #101014; }
+.connector-requirement > span { display: grid; place-items: center; width: 27px; height: 27px; flex: 0 0 auto; border-radius: 7px; background: var(--orange-soft); color: var(--orange); font-size: 10px; font-weight: 700; }
+.connector-requirement > div { min-width: 0; }
+.connector-callout { margin-top: 13px; padding: 14px; border: 1px solid #3c3022; border-radius: 9px; background: #17130f; }
+.connector-callout strong { color: #ffc38e; font-size: 11px; }
+.connector-callout a { display: inline-block; margin-top: 10px; color: #ffb56f; font-size: 10px; text-decoration: none; }
+.connector-callout a:hover { color: white; text-decoration: underline; }
+#connector-next-step { margin-top: 12px; line-height: 1.7; }
+@media (max-width: 540px) { .connector-grid { grid-template-columns: 1fr; } .connector-requirement { padding: 11px; } }
