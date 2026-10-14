@@ -459,6 +459,99 @@
     setText("holdout-status", "Evaluated " + test.length + " holdout observations");
   }
 
+  function evaluateWalkForward() {
+    const output = $("walk-forward-result");
+    if (!output) return;
+    const threshold = safeNumber($("threshold-input")?.value);
+    const streakN = safeNumber($("streak-input")?.value);
+    if (threshold === null || threshold <= 1 || streakN === null || !Number.isInteger(streakN) || streakN < 1 || streakN > 100) {
+      output.textContent = "Enter a target above 1× and a whole-number low-round streak from 1 to 100 in Strategy Lab.";
+      return;
+    }
+    const data = visibleRecords();
+    if (data.length < 100) {
+      output.textContent = "At least 100 valid observations are required. Larger real datasets are strongly preferred.";
+      setText("walk-forward-pill", "INSUFFICIENT DATA");
+      setText("walk-forward-status", "Needs at least 100 observations");
+      return;
+    }
+
+    const outcomes = data.map((r) => r.multiplier >= threshold ? 1 : 0);
+    const start = Math.max(50, streakN + 2);
+    const baselinePredictions = [];
+    const rulePredictions = [];
+    const testOutcomes = [];
+    const rows = [];
+    const foldCount = 5;
+    const foldSize = Math.ceil((data.length - start) / foldCount);
+    let totalTriggers = 0;
+
+    for (let i = start; i < data.length; i++) {
+      // At prediction time i, only observations strictly before i may be used.
+      const history = outcomes.slice(0, i);
+      const baselineP = history.reduce((sum, v) => sum + v, 0) / history.length;
+      let streakCases = 0;
+      let streakHits = 0;
+      for (let j = streakN; j < i; j++) {
+        let allLow = true;
+        for (let k = j - streakN; k < j; k++) {
+          if (outcomes[k] === 1) { allLow = false; break; }
+        }
+        if (allLow) {
+          streakCases++;
+          if (outcomes[j] === 1) streakHits++;
+        }
+      }
+      // Laplace smoothing reduces extreme conditional probabilities from sparse patterns.
+      const conditionalP = (streakHits + 1) / (streakCases + 2);
+      let allLowNow = true;
+      for (let k = i - streakN; k < i; k++) {
+        if (outcomes[k] === 1) { allLowNow = false; break; }
+      }
+      const prediction = allLowNow ? conditionalP : baselineP;
+      if (allLowNow) totalTriggers++;
+      baselinePredictions.push(baselineP);
+      rulePredictions.push(prediction);
+      testOutcomes.push(outcomes[i]);
+      const fold = Math.min(foldCount - 1, Math.floor((i - start) / foldSize));
+      if (!rows[fold]) rows[fold] = { n: 0, baseline: [], rule: [], hits: 0 };
+      rows[fold].n++;
+      rows[fold].baseline.push(baselineP);
+      rows[fold].rule.push(prediction);
+      rows[fold].hits += outcomes[i];
+    }
+
+    const baseScore = brierScore(testOutcomes, baselinePredictions);
+    const ruleScore = brierScore(testOutcomes, rulePredictions);
+    const p = document.createElement("p");
+    p.textContent = "Walk-forward forecasts scored: " + testOutcomes.length + " observations, starting after " + start + " initial history records. At each step, forecasts use only earlier results; the history expands after each observed outcome. Overall Brier score — rolling historical baseline: " + baseScore.toFixed(4) + "; streak rule: " + ruleScore.toFixed(4) + ". Rule triggered after a low streak " + totalTriggers + " time(s).";
+    const foldHeading = document.createElement("p");
+    foldHeading.textContent = "Chronological period checks (lower Brier score is better):";
+    const list = document.createElement("ul");
+    rows.filter(Boolean).forEach((fold, index) => {
+      const li = document.createElement("li");
+      const offset = rows.slice(0,index).reduce((sum, f) => sum + (f ? f.n : 0), 0);
+      const localOutcomes = testOutcomes.slice(offset, offset + fold.n);
+      const foldBase = brierScore(localOutcomes, fold.baseline);
+      const foldRule = brierScore(localOutcomes, fold.rule);
+      li.textContent = "Period " + (index + 1) + ": " + fold.n + " forecasts; target-hit rate " + fmtPercent(fold.hits / fold.n * 100) + "; baseline " + foldBase.toFixed(4) + "; streak rule " + foldRule.toFixed(4) + (foldRule < foldBase ? " (rule lower)" : foldRule > foldBase ? " (baseline lower)" : " (tie)") + ".";
+      list.appendChild(li);
+    });
+    const caution = document.createElement("p");
+    caution.className = "small-note";
+    caution.textContent = ruleScore < baseScore
+      ? "The rule had a lower aggregate Brier score in this walk-forward run, but this alone does not establish a dependable edge."
+      : ruleScore > baseScore
+        ? "The streak rule did not beat the rolling baseline overall in this run."
+        : "The rule and baseline tied on aggregate Brier score in this run.";
+    const caveat = document.createElement("p");
+    caveat.className = "small-note";
+    caveat.textContent = "This is retrospective statistical research, not a prediction or betting signal. The first history records are not scored; repeated strategy selection, data errors, dependence and regime changes can distort results. Demo data is synthetic and must not be treated as real evidence.";
+    output.replaceChildren(p, foldHeading, list, caution, caveat);
+    setText("walk-forward-pill", ruleScore < baseScore ? "RULE LOWER" : "BASELINE/TIE");
+    setText("walk-forward-status", "Scored " + testOutcomes.length + " sequential forecasts");
+  }
+
   function seededRandom(seed) {
     let state = seed >>> 0;
     return function () {
@@ -565,6 +658,7 @@
     $("export-csv")?.addEventListener("click", exportRecords);
     $("run-analysis")?.addEventListener("click", analyseThreshold);
     $("run-holdout")?.addEventListener("click", evaluateHoldout);
+    $("run-walk-forward")?.addEventListener("click", evaluateWalkForward);
     $("clear-data")?.addEventListener("click", clearData);
     $("rtp-input")?.addEventListener("input", updateProbability);
     $("target-input")?.addEventListener("input", updateProbability);
