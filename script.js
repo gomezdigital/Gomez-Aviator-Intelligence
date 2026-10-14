@@ -38,8 +38,15 @@
   function validRecord(multiplier, timestamp, round) {
     const m = safeNumber(multiplier);
     if (m === null || m < 1 || m > 100000000) return null;
-    let time = timestamp ? new Date(timestamp).getTime() : null;
-    if (!Number.isFinite(time)) time = null;
+    let time = null;
+    if (timestamp !== null && timestamp !== undefined && String(timestamp).trim() !== "") {
+      const rawTime = String(timestamp).trim();
+      const numericTime = /^\\d{10,13}$/.test(rawTime) ? Number(rawTime) : null;
+      time = numericTime !== null
+        ? (rawTime.length === 10 ? numericTime * 1000 : numericTime)
+        : new Date(rawTime).getTime();
+      if (!Number.isFinite(time)) time = null;
+    }
     return {
       round: round || null,
       multiplier: m,
@@ -122,10 +129,66 @@
   }
 
   function visibleRecords() {
-    return records.slice().sort((a, b) => {
-      if (a.timestamp !== null && b.timestamp !== null) return a.timestamp - b.timestamp;
-      return (a.round || 0) > (b.round || 0) ? 1 : -1;
+    // Preserve imported row order when timestamps are absent or mixed; sort by time only
+    // when every record has a valid timestamp, which avoids an inconsistent comparator.
+    const copy = records.slice();
+    if (copy.length && copy.every((r) => r.timestamp !== null)) {
+      copy.sort((a, b) => a.timestamp - b.timestamp);
+    }
+    return copy;
+  }
+
+  function duplicateTimestampCount() {
+    const seen = new Set();
+    let duplicates = 0;
+    records.forEach((r) => {
+      if (r.timestamp === null) return;
+      const key = String(r.timestamp) + "|" + String(r.multiplier);
+      if (seen.has(key)) duplicates++;
+      else seen.add(key);
     });
+    return duplicates;
+  }
+
+  function csvEscape(value) {
+    const s = String(value ?? "");
+    return /[",\\r\\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  function downloadCsv(filename, rows) {
+    const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\\r\\n") + "\\r\\n";
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function downloadTemplate() {
+    downloadCsv("gomez-aviator-history-template.csv", [
+      ["timestamp", "multiplier", "round_id"],
+      [new Date().toISOString(), "1.42", "example-001"]
+    ]);
+    setText("quality-message", "CSV template downloaded. Replace the example row with real observed outcomes; keep timestamps and multipliers paired.");
+  }
+
+  function exportRecords() {
+    if (!records.length) {
+      setText("quality-message", "There are no records to export yet.");
+      return;
+    }
+    const rows = [["timestamp", "multiplier", "round_id"]];
+    visibleRecords().forEach((r, i) => rows.push([
+      r.timestamp !== null ? new Date(r.timestamp).toISOString() : "",
+      r.multiplier,
+      r.round || (i + 1)
+    ]));
+    downloadCsv("gomez-aviator-history.csv", rows);
+    setText("quality-message", "Exported " + records.length + " record(s) as CSV.");
   }
 
   function last24Hours() {
@@ -198,7 +261,7 @@
     setText("baseline-status", values.length ? "Descriptive baseline calculated from " + values.length + " supplied rounds" : "Waiting for data");
     setText("baseline-pill", values.length ? "CALCULATED" : "NOT RUN");
     setText("quality-message", values.length
-      ? records.filter((r) => r.timestamp === null).length + " record(s) have no timestamp; " + invalidRows + " invalid CSV row(s) skipped."
+      ? records.filter((r) => r.timestamp === null).length + " record(s) have no timestamp; " + duplicateTimestampCount() + " duplicate timestamp+multiplier pair(s); " + invalidRows + " invalid CSV row(s) skipped."
       : "Waiting for data");
     render24HourSummary();
     renderRecords(data);
@@ -422,6 +485,8 @@
       event.target.value = "";
     });
     $("load-demo")?.addEventListener("click", loadDemo);
+    $("download-template")?.addEventListener("click", downloadTemplate);
+    $("export-csv")?.addEventListener("click", exportRecords);
     $("run-analysis")?.addEventListener("click", analyseThreshold);
     $("clear-data")?.addEventListener("click", clearData);
     $("rtp-input")?.addEventListener("input", updateProbability);
