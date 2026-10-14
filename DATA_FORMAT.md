@@ -71,3 +71,10 @@ The dashboard now reports basic data-quality flags: missing or invalid timestamp
 ## Research estimates and report exports
 
 The experimental historical-rate panel calculates the observed proportion of supplied records reaching the selected target and an approximate 95% Wilson score interval. This interval summarizes uncertainty in a binomial sample; it is not a calibrated prediction interval for the next round and does not establish that future outcomes follow the same distribution. The research report CSV exports dataset size, timestamp coverage and range, descriptive rates, selected target/streak settings, visible holdout and walk-forward reports, quality flags, and an interpretation warning. Reports should retain the source dataset separately because the export summary cannot authenticate it.
+
+
+## Phase 02 — Live data connector readiness
+
+The dashboard does **not** currently connect to a live Aviator feed. The Live Data Connector panel records the prerequisites for a future integration without faking a connection. A real integration requires an authorized provider, documented API permissions/authentication, and usually a server-side relay so private credentials are not exposed in browser JavaScript or a public repository. The relay must validate source timestamps, deduplicate rounds, report feed age/errors, and preserve provenance.
+
+The [official Aviator Studio Round History API documentation](https://docs.crash.aviator.studio/round-history/) describes authenticated provider access and IP allowlisting. It does not by itself grant this project access to Betway's player-facing results. Do not scrape private endpoints, bypass access controls, or put API secrets in this repository. Until an authorized source is approved and configured, data entry/import remains manual and the UI must continue to show **NOT CONNECTED**.
