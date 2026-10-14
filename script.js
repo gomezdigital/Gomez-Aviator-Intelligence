@@ -917,6 +917,38 @@
     setText("collector-connection-status", "Loaded " + imported.length + " record(s) into Data Lab.");
   }
 
+  function predictNextFlightResearch() {
+    const output = $("next-flight-result");
+    if (!output) return;
+    const data = visibleRecords();
+    if (!data.length) {
+      output.textContent = "";
+      const strong = document.createElement("strong");
+      strong.textContent = "No data to check yet";
+      const p = document.createElement("p");
+      p.textContent = "Import a real history CSV or connect a collector first. Demo data is only for testing.";
+      output.append(strong, p);
+      return;
+    }
+    const isDemo = /demo|synthetic/i.test(String(dataSource || ""));
+    const total = data.length;
+    const rate = (target) => (data.filter((r) => r.multiplier >= target).length / total) * 100;
+    const lines = [
+      "We cannot reliably predict the next flight. Its crash point is unknown.",
+      "In the " + total.toLocaleString() + " saved round(s):",
+      "• Reached 2×: " + rate(2).toFixed(1) + "%",
+      "• Reached 5×: " + rate(5).toFixed(1) + "%",
+      "• Reached 10×: " + rate(10).toFixed(1) + "%",
+      isDemo ? "WARNING: this is synthetic demo data, not real game history." : "These are past results only, not odds for the next round."
+    ];
+    output.textContent = "";
+    const title = document.createElement("strong");
+    title.textContent = "Next flight: unknown ✈️";
+    const p = document.createElement("p");
+    p.textContent = lines.join("\n");
+    output.append(title, p);
+  }
+
   function init() {
     restore();
     const data = visibleRecords();
@@ -935,6 +967,7 @@
     $("estimate-rate")?.addEventListener("click", estimateHistoricalRate);
     $("export-research-report")?.addEventListener("click", exportResearchReport);
     $("clear-data")?.addEventListener("click", clearData);
+    $("predict-next-flight")?.addEventListener("click", predictNextFlightResearch);
     $("connect-collector")?.addEventListener("click", connectCollector);
     $("collector-url")?.addEventListener("keydown", (event) => { if (event.key === "Enter") connectCollector(); });
     $("import-collector-records")?.addEventListener("click", importCollectorRecords);
