@@ -70,7 +70,14 @@
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
       if (Array.isArray(saved)) {
-        records = saved.map((r) => validRecord(r.multiplier, r.timestamp, r.round)).filter(Boolean);
+        records = saved.map((r) => {
+          const rec = validRecord(r.multiplier, r.timestamp, r.round);
+          if (rec) {
+            rec.timestampIssue = Boolean(r.timestampIssue);
+            rec.timestampProvided = Boolean(r.timestampProvided || r.timestampIssue || r.timestamp !== null);
+          }
+          return rec;
+        }).filter(Boolean);
         if (records.length) dataSource = "Saved browser records";
       }
     } catch (_) {
