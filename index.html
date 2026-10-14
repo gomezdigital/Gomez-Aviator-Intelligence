@@ -22,6 +22,7 @@
       <div class="sidebar-label">WORKSPACE</div>
       <nav class="side-nav" aria-label="Main navigation">
         <a class="nav-link active" href="#overview"><span class="nav-icon">◫</span> Overview</a>
+        <a class="nav-link" href="#live-connector"><span class="nav-icon">↔</span> Live Connector</a>
         <a class="nav-link" href="#data-lab"><span class="nav-icon">▤</span> Data Lab</a>
         <a class="nav-link" href="#probability"><span class="nav-icon">％</span> Probability</a>
         <a class="nav-link" href="#strategy-lab"><span class="nav-icon">⌁</span> Strategy Lab</a>
@@ -60,6 +61,20 @@
         <span class="notice-icon">i</span>
         <p><strong>Research disclaimer</strong> — This dashboard analyses supplied or demo data. It does not know upcoming crash points, connect to Betway, or guarantee betting outcomes. Demo data is synthetic and must not be mistaken for real game history.</p>
       </div>
+
+
+      <section class="panel live-connector-panel" id="live-connector" aria-labelledby="live-connector-title">
+        <div class="panel-heading"><div><div class="section-kicker">PHASE 02 · DATA INTEGRATION</div><h2 id="live-connector-title">Live data connector</h2><p>Connection readiness for a legitimate, authorized source of completed round results.</p></div><span class="panel-tag connector-offline">NOT CONNECTED</span></div>
+        <div class="connector-status-row"><span class="connector-indicator"></span><div><strong>No live source configured</strong><p>The dashboard is not receiving live Aviator results. We will not label scraped, demo, or manually entered data as a live feed.</p></div></div>
+        <div class="connector-grid">
+          <div class="connector-requirement"><span>01</span><div><strong>Authorized data provider</strong><p>Confirm a provider that is allowed to supply the exact game's completed-round history.</p></div></div>
+          <div class="connector-requirement"><span>02</span><div><strong>API access and permission</strong><p>Provider documentation, account approval, credentials, and any IP allowlisting required for access.</p></div></div>
+          <div class="connector-requirement"><span>03</span><div><strong>Secure server-side relay</strong><p>Keep private keys off this public webpage; a backend must authenticate, validate, and timestamp incoming records.</p></div></div>
+          <div class="connector-requirement"><span>04</span><div><strong>Feed health checks</strong><p>Show last successful sync, data age, missing rounds, duplicates, and source status before using the data in research.</p></div></div>
+        </div>
+        <div class="connector-callout"><strong>Important: provider access is not the same as public player access.</strong><p>The official Aviator Studio round-history API documentation describes authenticated provider access and IP whitelisting. It does not establish that a public Betway player-results API is available to us. We need a documented, authorized source before connecting anything.</p><a href="https://docs.crash.aviator.studio/round-history/" target="_blank" rel="noopener noreferrer">Review official Round History API documentation ↗</a></div>
+        <p class="small-note" id="connector-next-step">Next required input: the approved API/provider documentation or written confirmation of the data source. Do not paste secret API keys into this dashboard or a public GitHub file.</p>
+      </section>
 
       <section class="metrics-grid" aria-label="Dataset summary">
         <article class="metric-card"><div class="metric-top"><span>ROUNDS ANALYSED</span><span class="metric-symbol">▤</span></div><div class="metric-value" id="metric-rounds">0</div><div class="metric-foot">Valid multiplier records</div></article>
