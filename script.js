@@ -827,6 +827,96 @@
     setText("manual-status", "Dataset cleared.");
   }
 
+  const COLLECTOR_URL_KEY = "gomezAviatorIntelligence.collectorUrl.v1";
+  let collectorBaseUrl = "";
+  let collectorRounds = [];
+
+  function normalizeCollectorBase(raw) {
+    const parsed = new URL(String(raw || "").trim());
+    const local = parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+    if (parsed.protocol !== "https:" && !(local && parsed.protocol === "http:")) {
+      throw new Error("Use HTTPS (HTTP is allowed only for localhost testing).");
+    }
+    parsed.hash = "";
+    parsed.search = "";
+    return parsed.toString().replace(/\/$/, "");
+  }
+
+  async function collectorGet(pathname) {
+    const response = await fetch(collectorBaseUrl + pathname, { headers: { Accept: "application/json" }, cache: "no-store" });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    return response.json();
+  }
+
+  async function refreshCollectorStatus() {
+    if (!collectorBaseUrl) return;
+    setText("collector-connection-status", "Checking collector…");
+    try {
+      const values = await Promise.all([
+        collectorGet("/health"),
+        collectorGet("/api/v1/sources"),
+        collectorGet("/api/v1/rounds?limit=500")
+      ]);
+      const health = values[0], sourceData = values[1], roundData = values[2];
+      if (!health.ok || !Array.isArray(sourceData.sources) || !Array.isArray(roundData.rounds)) {
+        throw new Error("Response does not match the collector API format.");
+      }
+      collectorRounds = roundData.rounds.filter((r) =>
+        r && typeof r.source === "string" && typeof r.roundId === "string" &&
+        Number.isFinite(Number(r.multiplier)) && Number(r.multiplier) >= 1 &&
+        Number.isFinite(Date.parse(r.endedAt))
+      );
+      const sourceText = sourceData.sources.map((s) => s.source + ": " + s.records + " stored").join(" · ");
+      setText("collector-source-status", sourceText || "No source status returned.");
+      const latest = collectorRounds.reduce((best, r) => Math.max(best, Date.parse(r.endedAt)), 0);
+      setText("collector-connection-status", "Collector reachable; " + collectorRounds.length +
+        " valid stored round(s). " + (health.liveProviderConnected ? "Provider reports connected; verify source status." : "No verified live provider connection reported.") +
+        (latest ? " Latest stored round: " + new Date(latest).toLocaleString() + "." : ""));
+      const button = $("import-collector-records");
+      if (button) button.disabled = collectorRounds.length === 0;
+    } catch (error) {
+      collectorRounds = [];
+      setText("collector-source-status", "");
+      setText("collector-connection-status", "Could not connect: " + error.message + ". Check URL, HTTPS, backend status and CORS.");
+      const button = $("import-collector-records");
+      if (button) button.disabled = true;
+    }
+  }
+
+  function connectCollector() {
+    try {
+      collectorBaseUrl = normalizeCollectorBase($("collector-url")?.value);
+      $("collector-url").value = collectorBaseUrl;
+      try { localStorage.setItem(COLLECTOR_URL_KEY, collectorBaseUrl); } catch (_) {}
+      refreshCollectorStatus();
+    } catch (error) {
+      setText("collector-connection-status", error.message);
+    }
+  }
+
+  function importCollectorRecords() {
+    const imported = collectorRounds.map((r) => ({
+      round: r.roundId,
+      roundId: r.roundId,
+      source: r.source,
+      multiplier: Number(r.multiplier),
+      timestamp: Date.parse(r.endedAt),
+      timestampProvided: true
+    })).filter((r) => Number.isFinite(r.multiplier) && r.multiplier >= 1 && Number.isFinite(r.timestamp));
+    if (!imported.length) {
+      setText("collector-connection-status", "No valid collector records are available.");
+      return;
+    }
+    records = imported.sort((a, b) => a.timestamp - b.timestamp);
+    invalidRows = 0;
+    dataSource = "Collector API records; source authenticity not independently verified";
+    persist();
+    updateMetrics(visibleRecords());
+    analyseThreshold();
+    setText("quality-message", "Loaded " + imported.length + " timestamped collector record(s). This does not prove a verified live feed.");
+    setText("collector-connection-status", "Loaded " + imported.length + " record(s) into Data Lab.");
+  }
+
   function init() {
     restore();
     const data = visibleRecords();
@@ -845,6 +935,18 @@
     $("estimate-rate")?.addEventListener("click", estimateHistoricalRate);
     $("export-research-report")?.addEventListener("click", exportResearchReport);
     $("clear-data")?.addEventListener("click", clearData);
+    $("connect-collector")?.addEventListener("click", connectCollector);
+    $("collector-url")?.addEventListener("keydown", (event) => { if (event.key === "Enter") connectCollector(); });
+    $("import-collector-records")?.addEventListener("click", importCollectorRecords);
+    try {
+      const saved = localStorage.getItem(COLLECTOR_URL_KEY);
+      if (saved && $("collector-url")) {
+        collectorBaseUrl = normalizeCollectorBase(saved);
+        $("collector-url").value = collectorBaseUrl;
+        refreshCollectorStatus();
+      }
+    } catch (_) {}
+
     $("rtp-input")?.addEventListener("input", updateProbability);
     $("target-input")?.addEventListener("input", updateProbability);
     $("add-manual-record")?.addEventListener("click", addManualRecord);
@@ -873,6 +975,8 @@
     }
     // Keep the 24-hour rolling window fresh while the dashboard stays open.
     window.setInterval(render24HourSummary, 60000);
+    window.setInterval(() => { if (collectorBaseUrl) refreshCollectorStatus(); }, 30000);
+
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
