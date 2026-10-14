@@ -56,3 +56,8 @@ The Model Research panel now offers a 70/30 chronological holdout test when at l
 - The Brier score compares probabilistic forecasts with binary outcomes; lower is better. The streak rule is compared with a constant base-rate forecast fitted on the training segment.
 - This is exploratory and can be unstable on small or non-independent data. It is not proof of predictability or a betting signal. A single split can be lucky; stronger research needs larger samples, rules chosen before testing, and repeated walk-forward evaluation.
 - If every record has a timestamp, the dashboard sorts by timestamp before splitting. Otherwise, it preserves supplied row order; ensure the CSV is in actual chronological order.
+
+
+## Expanding walk-forward validation
+
+The Model Research panel includes a sequential walk-forward test for datasets with at least 100 valid observations. It begins after an initial history of at least 50 records (or the selected streak length plus two), then scores each subsequent forecast. At each forecast step, the overall target-hit baseline and the Laplace-smoothed conditional rate after a low streak are calculated from prior observations only. The model then observes the outcome and expands its history for the next step. Aggregate Brier scores and five chronological period checks are shown for the baseline and streak rule. Lower Brier scores are better, but these descriptive results do not prove predictability, establish a durable edge, or recommend a bet. Ensure records are in chronological order; fully timestamped datasets are sorted by timestamp, while untimestamped/mixed datasets preserve supplied row order.
