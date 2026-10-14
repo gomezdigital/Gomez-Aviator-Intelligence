@@ -192,6 +192,20 @@ td:first-child { color: #777781; }
 .connector-indicator { width: 10px; height: 10px; flex: 0 0 auto; margin-top: 4px; border-radius: 50%; background: #f07868; box-shadow: 0 0 0 4px rgba(240,120,104,.12); }
 .connector-status-row strong, .connector-requirement strong { color: #f1f1f4; font-size: 12px; }
 .connector-status-row p, .connector-requirement p, .connector-callout p { margin: 6px 0 0; color: #a5a5af; font-size: 10px; line-height: 1.7; }
+.flight-predictor-panel { margin: 18px 0; }
+.flight-predictor-content { display: flex; align-items: center; gap: 16px; margin-top: 15px; padding: 18px; border: 1px solid #4b301d; border-radius: 12px; background: linear-gradient(110deg, rgba(255,138,36,.11), rgba(17,17,20,.75)); }
+.flight-icon { display: grid; place-items: center; flex: 0 0 54px; height: 54px; border-radius: 14px; background: var(--orange-soft); font-size: 28px; }
+.flight-predictor-copy { min-width: 0; }
+.flight-predictor-copy > strong { font: 700 17px "Space Grotesk", sans-serif; }
+.flight-predictor-copy p { margin: 6px 0 12px; color: var(--muted); line-height: 1.65; }
+.next-flight-result { margin-top: 12px; padding: 15px; border: 1px solid var(--border); border-radius: 10px; background: #0d0d10; }
+.next-flight-result > strong { display: block; color: var(--orange); font-size: 14px; }
+.next-flight-result p { margin: 8px 0 0; color: #d0d0d6; line-height: 1.8; white-space: pre-line; overflow-wrap: anywhere; }
+@media (max-width: 520px) {
+  .flight-predictor-content { align-items: flex-start; padding: 14px; gap: 12px; }
+  .flight-icon { flex-basis: 42px; height: 42px; font-size: 22px; }
+  .flight-predictor-copy .button { width: 100%; }
+}
 .connector-connect-form { margin-top: 14px; }
 .connector-connect-form label { display: block; margin-top: 12px; color: var(--muted); font-size: 11px; }
 .connector-connect-controls { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 7px; }
