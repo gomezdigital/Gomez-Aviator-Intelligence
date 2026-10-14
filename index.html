@@ -128,6 +128,13 @@
             <button class="button button-primary full-button" id="run-holdout" type="button">Run 70/30 holdout test</button>
             <div class="analysis-result" id="holdout-result" aria-live="polite"><div class="result-placeholder">Load at least 50 observations, then run the holdout test. It compares Brier scores against a training-only base-rate forecast.</div></div>
           </div>
+          <div class="holdout-box walk-forward-box">
+            <div class="section-kicker">EXPANDING WALK-FORWARD TEST</div>
+            <p class="small-note">Runs sequential forecasts across the dataset. Every forecast uses only earlier observations; then the history expands. Requires at least 100 observations.</p>
+            <button class="button button-secondary full-button" id="run-walk-forward" type="button">Run walk-forward validation</button>
+            <div class="model-status compact-status"><span class="model-icon">↗</span><div><strong>Walk-forward status</strong><small id="walk-forward-status">Waiting for validation</small></div><span class="status-pill muted-pill" id="walk-forward-pill">NOT RUN</span></div>
+            <div class="analysis-result" id="walk-forward-result" aria-live="polite"><div class="result-placeholder">Run the expanding test to compare sequential forecasts against a rolling historical baseline.</div></div>
+          </div>
           <div class="evidence-callout"><strong>Our standard</strong><p>A model must outperform a simple baseline on unseen data before we describe its signal as useful. If it cannot, the report will say so.</p></div>
         </article>
       </section>
