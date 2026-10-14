@@ -176,3 +176,10 @@ td:first-child { color: #777781; }
 #walk-forward-result ul { padding-left: 18px; margin: 8px 0 12px; }
 #walk-forward-result li + li { margin-top: 5px; }
 #walk-forward-pill { max-width: 110px; text-align: center; }
+
+
+/* Research engine additions */
+.research-estimate-box .analysis-result,
+#dataset-profile { overflow-wrap: anywhere; }
+#estimate-pill { white-space: nowrap; }
+#report-status { display: block; margin-top: 12px; }
