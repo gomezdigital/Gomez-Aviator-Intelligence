@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0b0d">
+  <meta name="description" content="Gomez Aviator Intelligence — a transparent research dashboard for historical crash-game statistics, probability analysis, and strategy backtesting.">
+  <title>Gomez Aviator Intelligence | Research Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#overview" aria-label="Gomez Aviator Intelligence home">
+        <span class="brand-mark">GA<span>i</span></span>
+        <span class="brand-copy"><strong>GOMEZ</strong><small>AVIATOR INTELLIGENCE</small></span>
+      </a>
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="side-nav" aria-label="Main navigation">
+        <a class="nav-link active" href="#overview"><span class="nav-icon">◫</span> Overview</a>
+        <a class="nav-link" href="#data-lab"><span class="nav-icon">▤</span> Data Lab</a>
+        <a class="nav-link" href="#probability"><span class="nav-icon">％</span> Probability</a>
+        <a class="nav-link" href="#strategy-lab"><span class="nav-icon">⌁</span> Strategy Lab</a>
+        <a class="nav-link" href="#model-lab"><span class="nav-icon">◈</span> Model Research</a>
+      </nav>
+      <div class="sidebar-note">
+        <span class="status-dot"></span>
+        <div><strong>Research mode</strong><small>No live bets or automated betting</small></div>
+      </div>
+      <div class="sidebar-footer">GOMEZ DIGITAL <span>·</span> EARLY ACCESS</div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+        <div class="breadcrumb">Workspace <span>/</span> <strong>Overview</strong></div>
+        <div class="topbar-right"><span class="live-badge"><i></i> ANALYTICS ONLINE</span><span class="avatar">GA</span></div>
+      </header>
+
+      <section class="page-heading" id="overview">
+        <div>
+          <div class="eyebrow"><span></span> BIG DATA · STATISTICS · MODEL TESTING</div>
+          <h1>Aviator <span>Intelligence.</span></h1>
+          <p class="heading-copy">Study historical outcomes. Test assumptions. Measure evidence — without pretending randomness can be known in advance.</p>
+        </div>
+        <div class="heading-actions">
+          <label class="button button-secondary upload-button" for="csv-file">↑ Import CSV</label>
+          <input id="csv-file" type="file" accept=".csv,text/csv" hidden>
+          <button class="button button-primary" id="load-demo">Load demo data <span>↗</span></button>
+        </div>
+      </section>
+
+      <div class="notice-banner" role="note">
+        <span class="notice-icon">i</span>
+        <p><strong>Research disclaimer</strong> — This dashboard analyses supplied or demo data. It does not know upcoming crash points, connect to Betway, or guarantee betting outcomes. Demo data is synthetic and must not be mistaken for real game history.</p>
+      </div>
+
+      <section class="metrics-grid" aria-label="Dataset summary">
+        <article class="metric-card"><div class="metric-top"><span>ROUNDS ANALYSED</span><span class="metric-symbol">▤</span></div><div class="metric-value" id="metric-rounds">0</div><div class="metric-foot">Valid multiplier records</div></article>
+        <article class="metric-card"><div class="metric-top"><span>MEDIAN MULTIPLIER</span><span class="metric-symbol">⌁</span></div><div class="metric-value" id="metric-median">—</div><div class="metric-foot">Middle observed result</div></article>
+        <article class="metric-card"><div class="metric-top"><span>REACHED 2.00×</span><span class="metric-symbol">↗</span></div><div class="metric-value" id="metric-two">—</div><div class="metric-foot">Share of supplied rounds</div></article>
+        <article class="metric-card"><div class="metric-top"><span>REACHED 10.00×</span><span class="metric-symbol">✳</span></div><div class="metric-value" id="metric-ten">—</div><div class="metric-foot">Share of supplied rounds</div></article>
+      </section>
+
+      <section class="content-grid">
+        <article class="panel chart-panel" id="data-lab">
+          <div class="panel-heading"><div><div class="section-kicker">DATA EXPLORER</div><h2>Multiplier distribution</h2><p>How often observed results fall into each range.</p></div><span class="panel-tag">HISTORICAL</span></div>
+          <div class="chart-wrap"><canvas id="distribution-chart" role="img" aria-label="Bar chart of multiplier ranges"></canvas><div class="empty-chart" id="chart-empty">Load demo data or import a CSV to begin analysis.</div></div>
+          <div class="chart-legend"><span><i class="legend-dot"></i> Observed rounds</span><span id="dataset-label">No dataset loaded</span></div>
+        </article>
+
+        <article class="panel probability-panel" id="probability">
+          <div class="panel-heading"><div><div class="section-kicker">PROBABILITY ENGINE</div><h2>Target calculator</h2><p>Illustrative theoretical estimate.</p></div><span class="panel-tag orange-tag">MODEL-BASED</span></div>
+          <label class="field-label" for="rtp-input">Assumed theoretical RTP (%)</label>
+          <div class="input-row"><input id="rtp-input" type="number" min="1" max="100" step="0.1" value="97"><span>%</span></div>
+          <label class="field-label" for="target-input">Target multiplier (×)</label>
+          <div class="input-row"><input id="target-input" type="number" min="1.01" max="100000" step="0.01" value="2"><span>×</span></div>
+          <div class="probability-result"><div><span>ILLUSTRATIVE CHANCE OF REACHING TARGET</span><strong id="probability-value">48.50%</strong></div><div class="probability-ring" id="probability-ring"><span id="ring-value">49%</span></div></div>
+          <p class="small-note" id="probability-note">Assumes a standard crash-game model with 97% RTP. Verify the actual game's published rules; this is not a next-round prediction.</p>
+        </article>
+      </section>
+
+      <section class="content-grid lower-grid">
+        <article class="panel" id="strategy-lab">
+          <div class="panel-heading"><div><div class="section-kicker">STRATEGY LAB</div><h2>Historical threshold check</h2><p>Compare observed frequency with the selected threshold.</p></div></div>
+          <div class="control-row"><div class="control-field"><label class="field-label" for="threshold-input">Threshold multiplier</label><div class="input-row"><input id="threshold-input" type="number" min="1.01" max="100000" step="0.01" value="2"><span>×</span></div></div><div class="control-field"><label class="field-label" for="streak-input">Previous low rounds</label><div class="input-row"><input id="streak-input" type="number" min="1" max="100" step="1" value="5"><span>rounds</span></div></div></div>
+          <button class="button button-primary full-button" id="run-analysis">Analyse supplied history <span>↗</span></button>
+          <div class="analysis-result" id="analysis-result" aria-live="polite"><div class="result-placeholder">Load a dataset to test whether the next observed result after a low-round sequence differs from the overall historical frequency.</div></div>
+          <p class="small-note">Exploratory only. Small samples, random variation and testing many patterns can produce misleading apparent signals.</p>
+        </article>
+
+        <article class="panel" id="model-lab">
+          <div class="panel-heading"><div><div class="section-kicker">MODEL RESEARCH</div><h2>Evidence before predictions</h2><p>Model status and validation checklist.</p></div><span class="panel-tag">PHASE 01</span></div>
+          <div class="model-status"><span class="model-icon">⌘</span><div><strong>Statistical baseline</strong><small id="baseline-status">Waiting for data</small></div><span class="status-pill" id="baseline-pill">NOT RUN</span></div>
+          <div class="model-status"><span class="model-icon">◈</span><div><strong>Out-of-sample evaluation</strong><small>Time-ordered holdout testing</small></div><span class="status-pill muted-pill">PLANNED</span></div>
+          <div class="model-status"><span class="model-icon">✓</span><div><strong>Leakage & quality checks</strong><small>Validate before any model claims</small></div><span class="status-pill muted-pill">PLANNED</span></div>
+          <div class="evidence-callout"><strong>Our standard</strong><p>A model must outperform a simple baseline on unseen data before we describe its signal as useful. If it cannot, the report will say so.</p></div>
+        </article>
+      </section>
+
+      <section class="panel records-panel">
+        <div class="panel-heading"><div><div class="section-kicker">DATA QUALITY</div><h2>Recent imported records</h2><p>Most recent entries in the currently loaded dataset.</p></div><span class="panel-tag" id="records-count">0 RECORDS</span></div>
+        <div class="table-scroll"><table><thead><tr><th>#</th><th>ROUND ORDER</th><th>MULTIPLIER</th><th>THRESHOLD 2×</th><th>THRESHOLD 10×</th></tr></thead><tbody id="records-body"><tr><td colspan="5" class="table-empty">No records yet. Import a CSV or load synthetic demo data.</td></tr></tbody></table></div>
+        <div class="table-footer"><span id="quality-message">Waiting for data</span><button class="text-button" id="clear-data">Clear dataset</button></div>
+      </section>
+
+      <footer class="app-footer"><span>GOMEZ AVIATOR INTELLIGENCE <span class="footer-dot">●</span> RESEARCH BUILD 0.1.0</span><span>Independent analysis · No betting integration</span></footer>
+    </main>
+  </div>
+</body>
+</html>
