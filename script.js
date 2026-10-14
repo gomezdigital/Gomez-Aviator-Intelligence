@@ -39,19 +39,22 @@
     const m = safeNumber(multiplier);
     if (m === null || m < 1 || m > 100000000) return null;
     let time = null;
-    if (timestamp !== null && timestamp !== undefined && String(timestamp).trim() !== "") {
+    const timestampProvided = timestamp !== null && timestamp !== undefined && String(timestamp).trim() !== "";
+    let timestampIssue = false;
+    if (timestampProvided) {
       const rawTime = String(timestamp).trim();
       const numericTime = /^\d{10,13}$/.test(rawTime) ? Number(rawTime) : null;
       time = numericTime !== null
         ? (rawTime.length === 10 ? numericTime * 1000 : numericTime)
         : new Date(rawTime).getTime();
-      if (!Number.isFinite(time)) time = null;
+      if (!Number.isFinite(time)) { time = null; timestampIssue = true; }
     }
     return {
       round: round || null,
       multiplier: m,
       timestamp: time,
-      timestampProvided: time !== null
+      timestampProvided,
+      timestampIssue
     };
   }
 
@@ -148,6 +151,48 @@
       else seen.add(key);
     });
     return duplicates;
+  }
+
+  function dataQualityReport() {
+    const missingTimestamps = records.filter((r) => r.timestamp === null && !r.timestampIssue).length;
+    const invalidTimestamps = records.filter((r) => r.timestampIssue).length;
+    const futureTimestamps = records.filter((r) => r.timestamp !== null && r.timestamp > Date.now() + 60000).length;
+    const timestamped = records.filter((r) => r.timestamp !== null);
+    let orderInversions = 0;
+    for (let i = 1; i < timestamped.length; i++) {
+      if (timestamped[i].timestamp < timestamped[i - 1].timestamp) orderInversions++;
+    }
+    const seenRounds = new Set();
+    let duplicateRoundIds = 0;
+    records.forEach((r) => {
+      if (r.round === null || String(r.round).trim() === "") return;
+      const key = String(r.round).trim().toLowerCase();
+      if (seenRounds.has(key)) duplicateRoundIds++;
+      else seenRounds.add(key);
+    });
+    return {
+      missingTimestamps,
+      invalidTimestamps,
+      futureTimestamps,
+      orderInversions,
+      duplicateTimestampPairs: duplicateTimestampCount(),
+      duplicateRoundIds,
+      timestampCoverage: records.length ? timestamped.length / records.length : 0,
+      hasSeriousIssues: invalidTimestamps > 0 || futureTimestamps > 0
+    };
+  }
+
+  function qualitySummaryText(q) {
+    const warnings = [];
+    if (q.invalidTimestamps) warnings.push(q.invalidTimestamps + " invalid timestamp(s)");
+    if (q.futureTimestamps) warnings.push(q.futureTimestamps + " future timestamp(s)");
+    if (q.missingTimestamps) warnings.push(q.missingTimestamps + " missing timestamp(s)");
+    if (q.orderInversions) warnings.push(q.orderInversions + " timestamp order inversion(s) in supplied rows");
+    if (q.duplicateTimestampPairs) warnings.push(q.duplicateTimestampPairs + " repeated timestamp+multiplier pair(s)");
+    if (q.duplicateRoundIds) warnings.push(q.duplicateRoundIds + " duplicate round ID(s)");
+    if (!records.length) return "Waiting for data";
+    return records.length + " record(s). " + (warnings.length ? "Quality flags: " + warnings.join("; ") + "." : "No basic timestamp/ID flags detected.") +
+      " These checks cannot verify the source or authenticity of the records.";
   }
 
   function csvEscape(value) {
@@ -260,8 +305,9 @@
     setText("records-count", records.length + (records.length === 1 ? " RECORD" : " RECORDS"));
     setText("baseline-status", values.length ? "Descriptive baseline calculated from " + values.length + " supplied rounds" : "Waiting for data");
     setText("baseline-pill", values.length ? "CALCULATED" : "NOT RUN");
+    const q = dataQualityReport();
     setText("quality-message", values.length
-      ? records.filter((r) => r.timestamp === null).length + " record(s) have no timestamp; " + duplicateTimestampCount() + " duplicate timestamp+multiplier pair(s); " + invalidRows + " invalid CSV row(s) skipped."
+      ? qualitySummaryText(q) + " " + invalidRows + " invalid CSV row(s) skipped."
       : "Waiting for data");
     render24HourSummary();
     renderRecords(data);
@@ -397,6 +443,13 @@
       output.textContent = "Enter a target above 1× and a whole-number low-round streak from 1 to 100 in Strategy Lab.";
       return;
     }
+    const quality = dataQualityReport();
+    if (quality.hasSeriousIssues) {
+      output.textContent = "Validation paused: fix invalid or future timestamps before testing. Review the Data Quality flags below the records table, correct the source CSV, then re-import it.";
+      setText("holdout-pill", "DATA CHECK");
+      setText("holdout-status", "Blocked by timestamp quality flags");
+      return;
+    }
     const data = visibleRecords();
     if (data.length < 50) {
       output.textContent = "At least 50 valid observations are required for this exploratory 70/30 time-ordered holdout. More data is preferable.";
@@ -466,6 +519,13 @@
     const streakN = safeNumber($("streak-input")?.value);
     if (threshold === null || threshold <= 1 || streakN === null || !Number.isInteger(streakN) || streakN < 1 || streakN > 100) {
       output.textContent = "Enter a target above 1× and a whole-number low-round streak from 1 to 100 in Strategy Lab.";
+      return;
+    }
+    const quality = dataQualityReport();
+    if (quality.hasSeriousIssues) {
+      output.textContent = "Validation paused: fix invalid or future timestamps before testing. Review the Data Quality flags below the records table, correct the source CSV, then re-import it.";
+      setText("walk-forward-pill", "DATA CHECK");
+      setText("walk-forward-status", "Blocked by timestamp quality flags");
       return;
     }
     const data = visibleRecords();
