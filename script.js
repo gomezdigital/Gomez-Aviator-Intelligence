@@ -41,7 +41,7 @@
     let time = null;
     if (timestamp !== null && timestamp !== undefined && String(timestamp).trim() !== "") {
       const rawTime = String(timestamp).trim();
-      const numericTime = /^\\d{10,13}$/.test(rawTime) ? Number(rawTime) : null;
+      const numericTime = /^\d{10,13}$/.test(rawTime) ? Number(rawTime) : null;
       time = numericTime !== null
         ? (rawTime.length === 10 ? numericTime * 1000 : numericTime)
         : new Date(rawTime).getTime();
@@ -152,11 +152,11 @@
 
   function csvEscape(value) {
     const s = String(value ?? "");
-    return /[",\\r\\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   }
 
   function downloadCsv(filename, rows) {
-    const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\\r\\n") + "\\r\\n";
+    const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\r\n") + "\r\n";
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -383,6 +383,82 @@
     output.append(summary, caution);
   }
 
+  function brierScore(outcomes, predictions) {
+    if (!outcomes.length || outcomes.length !== predictions.length) return null;
+    return outcomes.reduce((sum, outcome, i) => sum + Math.pow(predictions[i] - outcome, 2), 0) / outcomes.length;
+  }
+
+  function evaluateHoldout() {
+    const output = $("holdout-result");
+    if (!output) return;
+    const threshold = safeNumber($("threshold-input")?.value);
+    const streakN = safeNumber($("streak-input")?.value);
+    if (threshold === null || threshold <= 1 || streakN === null || !Number.isInteger(streakN) || streakN < 1 || streakN > 100) {
+      output.textContent = "Enter a target above 1× and a whole-number low-round streak from 1 to 100 in Strategy Lab.";
+      return;
+    }
+    const data = visibleRecords();
+    if (data.length < 50) {
+      output.textContent = "At least 50 valid observations are required for this exploratory 70/30 time-ordered holdout. More data is preferable.";
+      setText("holdout-pill", "INSUFFICIENT DATA");
+      setText("holdout-status", "Needs at least 50 valid observations");
+      return;
+    }
+    const split = Math.floor(data.length * 0.7);
+    const train = data.slice(0, split);
+    const test = data.slice(split);
+    const trainOutcomes = train.map((r) => r.multiplier >= threshold ? 1 : 0);
+    const baseHits = trainOutcomes.reduce((sum, v) => sum + v, 0);
+    const baselineP = baseHits / trainOutcomes.length;
+    let streakOpportunities = 0;
+    let streakHits = 0;
+    for (let i = streakN; i < train.length; i++) {
+      let allLow = true;
+      for (let j = i - streakN; j < i; j++) {
+        if (train[j].multiplier >= threshold) { allLow = false; break; }
+      }
+      if (allLow) {
+        streakOpportunities++;
+        if (train[i].multiplier >= threshold) streakHits++;
+      }
+    }
+    // Laplace smoothing avoids exact 0% or 100% from a small training sample.
+    const conditionalP = (streakHits + 1) / (streakOpportunities + 2);
+    const baselinePredictions = [];
+    const rulePredictions = [];
+    const testOutcomes = [];
+    let triggered = 0;
+    for (let i = split; i < data.length; i++) {
+      const outcome = data[i].multiplier >= threshold ? 1 : 0;
+      let allLow = i >= streakN;
+      for (let j = i - streakN; allLow && j < i; j++) {
+        if (data[j].multiplier >= threshold) allLow = false;
+      }
+      const prediction = allLow ? conditionalP : baselineP;
+      if (allLow) triggered++;
+      testOutcomes.push(outcome);
+      baselinePredictions.push(baselineP);
+      rulePredictions.push(prediction);
+    }
+    const baselineBrier = brierScore(testOutcomes, baselinePredictions);
+    const ruleBrier = brierScore(testOutcomes, rulePredictions);
+    const p = document.createElement("p");
+    p.textContent = "Chronological split: first " + train.length + " observations for training; final " + test.length + " held out from fitting. Training baseline target-hit rate: " + fmtPercent(baselineP * 100) + ". Training low-streak cases: " + streakOpportunities + "; smoothed conditional rate: " + fmtPercent(conditionalP * 100) + ". Holdout rule triggers: " + triggered + " of " + test.length + " test rounds. Brier score — baseline: " + baselineBrier.toFixed(4) + "; streak rule: " + ruleBrier.toFixed(4) + ".";
+    const caution = document.createElement("p");
+    caution.className = "small-note";
+    caution.textContent = ruleBrier < baselineBrier
+      ? "On this one holdout, the streak rule had a lower Brier score than the baseline. This is not proof of a dependable edge; a single split can be lucky."
+      : ruleBrier > baselineBrier
+        ? "On this one holdout, the streak rule did not beat the baseline. Do not treat the observed pattern as a betting signal."
+        : "On this one holdout, both methods had the same Brier score. No improvement was demonstrated.";
+    const caveat = document.createElement("p");
+    caveat.className = "small-note";
+    caveat.textContent = "Research check only: repeated threshold testing, small samples, poor timestamps and dependence between rounds can mislead. Lower Brier score is better. This does not predict the next round.";
+    output.replaceChildren(p, caution, caveat);
+    setText("holdout-pill", ruleBrier < baselineBrier ? "BEAT BASELINE" : "NO EDGE SHOWN");
+    setText("holdout-status", "Evaluated " + test.length + " holdout observations");
+  }
+
   function seededRandom(seed) {
     let state = seed >>> 0;
     return function () {
@@ -488,6 +564,7 @@
     $("download-template")?.addEventListener("click", downloadTemplate);
     $("export-csv")?.addEventListener("click", exportRecords);
     $("run-analysis")?.addEventListener("click", analyseThreshold);
+    $("run-holdout")?.addEventListener("click", evaluateHoldout);
     $("clear-data")?.addEventListener("click", clearData);
     $("rtp-input")?.addEventListener("input", updateProbability);
     $("target-input")?.addEventListener("input", updateProbability);
