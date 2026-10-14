@@ -26,13 +26,13 @@ No secret required. Returns service health only and explicitly says whether a li
 
 `GET /api/v1/sources`
 
-Requires `Authorization: Bearer $READ_API_TOKEN`.
+Public read-only endpoint; only non-sensitive, normalized multiplier records are returned. Browser CORS is restricted to `CORS_ORIGINS`, but CORS is not authentication.
 
 ### Read latest records
 
 `GET /api/v1/rounds?limit=100&source=betway`
 
-Requires `Authorization: Bearer $READ_API_TOKEN`. Maximum 500 records per request. The optional source filter is `betway`, `sportybet`, `other-authorized-provider`, or `user-import`.
+Public read-only endpoint; only non-sensitive, normalized multiplier records are returned. Browser CORS is restricted to `CORS_ORIGINS`, but CORS is not authentication. Maximum 500 records per request. The optional source filter is `betway`, `sportybet`, `other-authorized-provider`, or `user-import`.
 
 ### Ingest completed rounds
 
@@ -61,7 +61,6 @@ The example round is fake and must not be presented as a real result. The collec
 
 Copy `.env.example` into your deployment's environment settings; do not commit real values. Set:
 - `INGEST_API_TOKEN`: long random secret for trusted collectors.
-- `READ_API_TOKEN`: a different long random secret for authorized readers.
 - `DATA_FILE`: persistent disk path, e.g. `/data/rounds.jsonl`.
 - `CORS_ORIGINS`: exact dashboard origin(s), no wildcard.
 - `ALLOWED_SOURCES`: keep empty until source access is authorized and configured.
@@ -87,7 +86,8 @@ Deploy this directory as a Node web service on a backend host that supports envi
 
 ## Security and research limitations
 
-- Never place API secrets in the public dashboard JavaScript, static HTML, or GitHub Pages.
+- Never place ingest API secrets in the public dashboard JavaScript, static HTML, or GitHub Pages.
+- Read endpoints are intentionally public because they serve only normalized public game-result data; never add player identities, bets, account details, or provider secrets to these responses.
 - Never supply operator passwords, session cookies, or browser tokens to this collector.
 - Do not bypass authentication, anti-bot controls, access restrictions, or source terms.
 - An ingest token authenticates the caller, not the truth of the data. A source adapter must verify data origin before records are described as provider-verified.
