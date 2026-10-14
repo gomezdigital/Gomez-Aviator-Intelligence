@@ -183,13 +183,11 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === "GET" && url.pathname === "/api/v1/sources") {
-      if (!hasBearer(req, READ_TOKEN)) return json(res, 401, { error: "Valid read token required." });
       const records = await readAllRecords();
       return json(res, 200, { sources: sourceHealth(records), liveFeedVerified: false });
     }
 
     if (req.method === "GET" && url.pathname === "/api/v1/rounds") {
-      if (!hasBearer(req, READ_TOKEN)) return json(res, 401, { error: "Valid read token required." });
       const limitParam = Number(url.searchParams.get("limit") || 100);
       const limit = Number.isInteger(limitParam) ? Math.min(Math.max(limitParam, 1), MAX_RETURNED_ROUNDS) : 100;
       const source = (url.searchParams.get("source") || "").trim().toLowerCase();
