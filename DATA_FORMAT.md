@@ -45,3 +45,14 @@ The dashboard stores records in browser local storage. They do not automatically
 ## Research limitation
 
 This project is an analysis and research dashboard, not a connection to the Aviator app and not an automated betting system. Historical frequencies describe supplied observations; they do not establish that the next crash point is knowable. Any future model must be evaluated chronologically on unseen data and compared with a baseline before its performance is described as useful.
+
+
+## Chronological holdout research milestone
+
+The Model Research panel now offers a 70/30 chronological holdout test when at least 50 valid observations are loaded.
+
+- The earlier 70% estimates the overall target-hit rate and a Laplace-smoothed rate following the selected low-round streak.
+- The later 30% is held out from fitting. Forecasts for each held-out observation use training-only estimates and the preceding observed rounds available at that point.
+- The Brier score compares probabilistic forecasts with binary outcomes; lower is better. The streak rule is compared with a constant base-rate forecast fitted on the training segment.
+- This is exploratory and can be unstable on small or non-independent data. It is not proof of predictability or a betting signal. A single split can be lucky; stronger research needs larger samples, rules chosen before testing, and repeated walk-forward evaluation.
+- If every record has a timestamp, the dashboard sorts by timestamp before splitting. Otherwise, it preserves supplied row order; ensure the CSV is in actual chronological order.
