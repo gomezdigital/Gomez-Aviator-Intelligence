@@ -192,6 +192,15 @@ td:first-child { color: #777781; }
 .connector-indicator { width: 10px; height: 10px; flex: 0 0 auto; margin-top: 4px; border-radius: 50%; background: #f07868; box-shadow: 0 0 0 4px rgba(240,120,104,.12); }
 .connector-status-row strong, .connector-requirement strong { color: #f1f1f4; font-size: 12px; }
 .connector-status-row p, .connector-requirement p, .connector-callout p { margin: 6px 0 0; color: #a5a5af; font-size: 10px; line-height: 1.7; }
+.connector-connect-form { margin-top: 14px; }
+.connector-connect-form label { display: block; margin-top: 12px; color: var(--muted); font-size: 11px; }
+.connector-connect-controls { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 7px; }
+.connector-connect-controls input { min-width: 0; flex: 1 1 260px; border: 1px solid var(--border); border-radius: 8px; background: #0b0b0e; color: var(--text); padding: 11px 12px; }
+.connector-connect-controls button, .connector-connect-form > button { border: 1px solid #8d4b1b; border-radius: 8px; background: var(--orange-soft); color: var(--text); padding: 10px 14px; font-weight: 700; }
+.connector-connect-controls button:hover, .connector-connect-form > button:hover { border-color: var(--orange); }
+.connector-connect-form > button:disabled { cursor: not-allowed; opacity: .45; }
+.connector-source-status { margin-top: 8px; color: var(--orange); font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; }
+#collector-connection-status { overflow-wrap: anywhere; }
 .connector-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin-top: 13px; }
 .connector-requirement { display: flex; gap: 11px; padding: 13px; border: 1px solid var(--border); border-radius: 9px; background: #101014; }
 .connector-requirement > span { display: grid; place-items: center; width: 27px; height: 27px; flex: 0 0 auto; border-radius: 7px; background: var(--orange-soft); color: var(--orange); font-size: 10px; font-weight: 700; }
