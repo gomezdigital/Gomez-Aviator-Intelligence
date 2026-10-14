@@ -665,8 +665,7 @@
       persist();
       updateMetrics(visibleRecords());
       analyseThreshold();
-      setText("quality-message", "Imported " + records.length + " valid record(s); skipped " + invalidRows + " invalid row(s). " +
-        records.filter((r) => r.timestamp !== null).length + " record(s) include timestamps.");
+      setText("quality-message", qualitySummaryText(dataQualityReport()) + " " + invalidRows + " invalid CSV row(s) skipped.");
     } catch (err) {
       setText("quality-message", "Could not read this CSV. Please try another CSV file.");
     }
