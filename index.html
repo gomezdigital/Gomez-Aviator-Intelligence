@@ -135,6 +135,24 @@
             <div class="model-status compact-status"><span class="model-icon">↗</span><div><strong>Walk-forward status</strong><small id="walk-forward-status">Waiting for validation</small></div><span class="status-pill muted-pill" id="walk-forward-pill">NOT RUN</span></div>
             <div class="analysis-result" id="walk-forward-result" aria-live="polite"><div class="result-placeholder">Run the expanding test to compare sequential forecasts against a rolling historical baseline.</div></div>
           </div>
+          <div class="holdout-box research-estimate-box">
+            <div class="section-kicker">EXPERIMENTAL HISTORICAL RATE</div>
+            <p class="small-note">Calculates how often the selected target was reached in the loaded historical sample and reports an approximate 95% Wilson interval. This is descriptive research, not a dependable next-round prediction.</p>
+            <button class="button button-primary full-button" id="estimate-rate" type="button">Estimate historical target rate</button>
+            <div class="model-status compact-status"><span class="model-icon">%</span><div><strong>Estimate status</strong><small id="estimate-status">Waiting for estimate</small></div><span class="status-pill muted-pill" id="estimate-pill">NOT RUN</span></div>
+            <div class="analysis-result" id="estimate-result" aria-live="polite"><div class="result-placeholder">Load real historical observations and select a target in Strategy Lab.</div></div>
+          </div>
+          <div class="holdout-box">
+            <div class="section-kicker">DATASET PROFILE</div>
+            <p class="small-note">A compact summary of the current dataset. Source labels are not independent verification of authenticity.</p>
+            <div class="analysis-result" id="dataset-profile" aria-live="polite">No dataset loaded.</div>
+          </div>
+          <div class="holdout-box">
+            <div class="section-kicker">EXPORT RESEARCH REPORT</div>
+            <p class="small-note">Exports the current dataset profile, selected parameters, historical-rate estimate and visible holdout/walk-forward results for record keeping.</p>
+            <button class="button button-secondary full-button" id="export-research-report" type="button">Export research report CSV</button>
+            <div class="small-note" id="report-status" aria-live="polite">No report exported yet.</div>
+          </div>
           <div class="evidence-callout"><strong>Our standard</strong><p>A model must outperform a simple baseline on unseen data before we describe its signal as useful. If it cannot, the report will say so.</p></div>
         </article>
       </section>
