@@ -66,6 +66,28 @@
         <article class="metric-card"><div class="metric-top"><span>REACHED 10.00×</span><span class="metric-symbol">✳</span></div><div class="metric-value" id="metric-ten">—</div><div class="metric-foot">Share of supplied rounds</div></article>
       </section>
 
+      <section class="panel rolling24-panel" id="rolling24-panel" aria-labelledby="rolling24-title">
+        <div class="panel-heading"><div><div class="section-kicker">ROLLING WINDOW</div><h2 id="rolling24-title">Last 24 hours</h2><p>Frequency summary from timestamped, recorded outcomes only.</p></div><span class="panel-tag">TIMESTAMPED DATA</span></div>
+        <div class="metrics-grid rolling-metrics">
+          <article class="metric-card"><div class="metric-top"><span>ROUNDS IN WINDOW</span></div><div class="metric-value" id="rolling24-count">0</div><div class="metric-foot">Last 24 hours</div></article>
+          <article class="metric-card"><div class="metric-top"><span>MEDIAN</span></div><div class="metric-value" id="rolling24-median">—</div><div class="metric-foot">Timestamped outcomes</div></article>
+          <article class="metric-card"><div class="metric-top"><span>REACHED 2×</span></div><div class="metric-value" id="rolling24-two">—</div><div class="metric-foot">Observed frequency</div></article>
+          <article class="metric-card"><div class="metric-top"><span>REACHED 10×</span></div><div class="metric-value" id="rolling24-ten">—</div><div class="metric-foot">Observed frequency</div></article>
+        </div>
+        <p class="small-note" id="rolling24-window">No timestamped records from the last 24 hours.</p>
+        <p class="small-note" id="rolling24-coverage">Only timestamped records are included in this window.</p>
+        <div class="manual-entry">
+          <h3>Record an observed round</h3>
+          <p class="small-note">Enter the multiplier after a round finishes. This is manual logging, not a live connection to Aviator.</p>
+          <div class="control-row">
+            <div class="control-field"><label class="field-label" for="manual-multiplier">Observed multiplier (×)</label><div class="input-row"><input id="manual-multiplier" type="number" min="1" max="100000000" step="0.01" placeholder="e.g. 1.42"></div></div>
+            <div class="control-field"><label class="field-label" for="manual-timestamp">Round time (optional)</label><div class="input-row"><input id="manual-timestamp" type="datetime-local" aria-label="Observed round date and time"></div></div>
+          </div>
+          <button class="button button-primary" id="add-manual-record" type="button">Save observed round</button>
+          <p class="small-note" id="manual-status" aria-live="polite">Records are saved in this browser. Use CSV import for larger histories.</p>
+        </div>
+      </section>
+
       <section class="content-grid">
         <article class="panel chart-panel" id="data-lab">
           <div class="panel-heading"><div><div class="section-kicker">DATA EXPLORER</div><h2>Multiplier distribution</h2><p>How often observed results fall into each range.</p></div><span class="panel-tag">HISTORICAL</span></div>
